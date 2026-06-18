@@ -1,82 +1,80 @@
-"use client"
+"use client";
 
-import { createContext, useContext, useState, useEffect, useRef } from 'react'
-import { setAccessToken } from '@/lib/api'
+import { createContext, useContext, useState, useEffect, useRef } from "react";
+import { setAccessToken } from "@/lib/api";
 
-const AuthContext = createContext(null)
+const AuthContext = createContext(null);
 
 async function attemptSilentRefresh() {
-  // This is a plain async function OUTSIDE the component
-  // It has no access to setState — it just returns data
-  const refreshToken = localStorage.getItem('refreshToken')
-  if (!refreshToken) return null
+  const refreshToken = localStorage.getItem("refreshToken");
+  if (!refreshToken) return null;
 
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/auth/refresh-token`,
+      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/api/auth/refresh-token`,
       {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refreshToken }),
-      }
-    )
-    const data = await res.json()
+      },
+    );
+    const data = await res.json();
 
     if (data.success) {
-      setAccessToken(data.data.accessToken)
-      localStorage.setItem('refreshToken', data.data.refreshToken)
-      return data.data.user
+      setAccessToken(data.data.accessToken);
+      localStorage.setItem("refreshToken", data.data.refreshToken);
+      return data.data.user;
     }
 
-    localStorage.removeItem('refreshToken')
-    return null
+    localStorage.removeItem("refreshToken");
+    return null;
   } catch (err) {
-    localStorage.removeItem('refreshToken')
-    return null
+    localStorage.removeItem("refreshToken");
+    return null;
   }
 }
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const initialized = useRef(false)
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const initialized = useRef(false);
 
   useEffect(() => {
     // Guard against running twice in React strict mode
-    if (initialized.current) return
-    initialized.current = true
+    if (initialized.current) return;
+    initialized.current = true;
 
     // attemptSilentRefresh is defined outside — no setState inside effect
     // We use .then() instead of await to keep the effect callback synchronous
     attemptSilentRefresh().then((userData) => {
-      setUser(userData)
-      setLoading(false)
-    })
-  }, [])
+      setUser(userData);
+      setLoading(false);
+    });
+  }, []);
 
   function login(userData, accessToken, refreshToken) {
-    setUser(userData)
-    setAccessToken(accessToken)
-    localStorage.setItem('refreshToken', refreshToken)
+    setUser(userData);
+    setAccessToken(accessToken);
+    localStorage.setItem("refreshToken", refreshToken);
   }
 
   function logout() {
-    setUser(null)
-    setAccessToken(null)
-    localStorage.removeItem('refreshToken')
+    setUser(null);
+    setAccessToken(null);
+    localStorage.removeItem("refreshToken");
   }
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext)
+  const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used inside AuthProvider')
+    throw new Error("useAuth must be used inside AuthProvider");
   }
-  return context
+  return context;
 }

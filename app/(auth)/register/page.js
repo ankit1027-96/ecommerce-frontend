@@ -53,7 +53,7 @@ export default function RegisterPage() {
             label="First name"
             placeholder="John"
             error={errors.firstName?.message}
-            {...register("FirstName", {
+            {...register("firstName", {
               required: "Required",
               minLength: { value: 2, message: "Too short" },
             })}
@@ -63,7 +63,7 @@ export default function RegisterPage() {
             label="Last name"
             placeholder="Doe"
             error={errors.lastName?.message}
-            {...register("lastname", {
+            {...register("lastName", {
               required: "Required",
               minLength: { value: 2, message: "Too short" },
             })}

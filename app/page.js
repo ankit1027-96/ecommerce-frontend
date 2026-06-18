@@ -1,9 +1,9 @@
-import Image from "next/image";
+"use client";
 
 export default function Home() {
   return (
     <main>
-      <h1>Ecommerce App</h1>
+      <h1>SwiftCart</h1>
     </main>
   );
 }
