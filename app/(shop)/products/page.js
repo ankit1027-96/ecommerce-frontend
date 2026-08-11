@@ -40,8 +40,6 @@ export default async function ProductsPage({ searchParams }) {
   ]);
 
   const { products = [], total = 0, page = 1, pages = 1 } = productsData;
-console.log(productsData);
-
   return (
     <div className="flex gap-6">
       <aside className="hidden md:block w-56 shrink-0">

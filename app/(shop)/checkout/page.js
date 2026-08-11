@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import api from "@/lib/api";
 import { useRazorpay } from "@/lib/useRazorpay";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
-
+import { getAccessToken } from "@/lib/api";
 const STEPS = ["Delivery Address", "Review Order", "Payment"];
 
 export default function CheckoutPage() {
@@ -33,12 +35,12 @@ function CheckoutFlow() {
   const [addressesLoading, setAddressesLoading] = useState(true);
 
   const items = cart?.items || [];
-  const pricing = cart?.pricing || {};
+  const pricing = cart?.totals || {};
 
   useEffect(() => {
     async function fetchAddresses() {
       try {
-        const { data } = await api.get("/api/users/addresses");
+        const { data } = await api.get("/api/user/addresses");
         setAddresses(data.data || []);
         const defaultAddr = data.data?.find((a) => a.isDefault);
         if (defaultAddr) setSelectedAddress(defaultAddr._id);
@@ -66,11 +68,10 @@ function CheckoutFlow() {
     setError("");
     setLoading("true");
     setStep(2);
-
     try {
-      const address = addresses.find((a) => selectedAddress);
+      const address = addresses.find((a) => a._id === selectedAddress);
 
-      const { data: orderData } = await api.post(",api/orders", {
+      const { data: orderData } = await api.post("/api/orders", {
         items: items.map((item) => ({
           productId: item.productId,
           quantity: item.quantity,
@@ -89,6 +90,7 @@ function CheckoutFlow() {
         },
         paymentMethod,
       });
+      console.log(data);
 
       const orderId = orderData.data._id || orderData.data.orderId;
 
@@ -145,7 +147,8 @@ function CheckoutFlow() {
         <div className="lg:col-span-2">
           {step === 0 && (
             <AddressStep
-              addresses={selectedAddress}
+              addresses={addresses}
+              selectedAddress={selectedAddress}
               onSelect={setSelectedAddress}
               loading={addressesLoading}
               paymentMethod={paymentMethod}
@@ -161,6 +164,18 @@ function CheckoutFlow() {
               error={error}
             />
           )}
+          {step === 1 && (
+            <ReviewStep
+              items={items}
+              address={addresses.find((a) => a._id === selectedAddress)}
+              paymentMethod={paymentMethod}
+              onBack={() => setStep(0)}
+              onPlaceOrder={handlePlaceOrder}
+              loading={loading}
+              error={error}
+            />
+          )}
+
           {step === 2 && <ProcessingStep />}
         </div>
 
@@ -237,9 +252,9 @@ function AddressStep({
         {addresses.length === 0 ? (
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-sm text-yellow-800">
             You have no saved addresses.{""}
-            <a href="/account" className="font-medium underline">
+            <Link href="/account" className="font-medium underline">
               Add one in account
-            </a>{" "}
+            </Link>{" "}
             before checking out.
           </div>
         ) : (

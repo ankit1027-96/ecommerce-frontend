@@ -23,10 +23,10 @@ export default function CartPage() {
   const items = cart?.items || [];
   const hasItems = items.length > 0;
 
-  const subtotal = cart?.pricing?.subtotal || 0;
-  const tax = cart?.pricing?.tax || 0;
-  const shipping = cart?.pricing?.shipping || 0;
-  const total = cart?.pricing?.total || 0;
+  const subtotal = cart?.totals?.subtotal || 0;
+  const tax = cart?.totals?.tax || 0;
+  const shipping = cart?.totals?.shipping || 0;
+  const total = cart?.totals?.total || 0;
   const freeShippingThreshold = 500;
 
   return (

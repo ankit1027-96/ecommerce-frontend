@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
-import Button from "./Button";
+import { Button } from "@/components/ui/button";
 
 export default function AddToCartButton({ productId, inStock }) {
   const { user } = useAuth();
@@ -12,7 +12,7 @@ export default function AddToCartButton({ productId, inStock }) {
   const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
-  const [feedback, setFeedback] = useState(null); // Response
+  const [feedback, setFeedback] = useState(null);
 
   async function handleAddToCart() {
     if (!user) {

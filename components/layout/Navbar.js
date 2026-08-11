@@ -2,17 +2,27 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { ShoppingCart } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import api from "@/lib/api";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const { cartCount } = useCart();
   const router = useRouter();
-  const [menuOpen, setMenuOpen] = useState(false);
 
   async function handleLogout() {
     try {
@@ -42,11 +52,9 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden md:flex flex-1 max-w-md mx-8">
-          <input
+          <Input
             type="text"
             placeholder="Search products..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm
-              focus:outline-none focus:ring-2 focus:ring-blue-500"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 router.push(`/products?search=${e.target.value}`);
@@ -56,74 +64,46 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
-          <Link href="/cart" className="relative p-2">
-            <svg
-              className="w-6 h-6 text-gray-700"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17
-                m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
+          {/* Cart button — Base UI Button uses `render`, not `asChild` */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative"
+            render={<Link href="/cart" />}
+          >
+            <ShoppingCart className="h-5 w-5 text-gray-700" />
             {cartCount > 0 && (
-              <span
-                className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs
-                w-5 h-5 rounded-full flex items-center justify-center font-medium"
-              >
+              <Badge className="absolute -top-1 -right-1 h-5 w-5 justify-center rounded-full p-0 bg-blue-600 hover:bg-blue-600">
                 {cartCount > 9 ? "9+" : cartCount}
-              </span>
+              </Badge>
             )}
-          </Link>
-          {user ? (
-            <div className="relative">
-              <button
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900"
-              >
-                <div
-                  className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center
-                  text-blue-700 font-medium text-sm"
-                >
-                  {user.firstName?.[0]?.toUpperCase()}
-                </div>
-                <span className="hidden md:block">{user.firstName}</span>
-              </button>
+          </Button>
 
-              {menuOpen && (
-                <div
-                  className="absolute right-0 mt-2 w-48 bg-white border border-gray-200
-                  rounded-xl shadow-lg py-1 z-50"
-                >
-                  <Link
-                    href="/account"
-                    onClick={() => setMenuOpen(false)}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                  >
-                    My Account
-                  </Link>
-                  <Link
-                    href="/account/orders"
-                    onClick={() => setMenuOpen(false)}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                  >
-                    My Orders
-                  </Link>
-                  <hr className="my-1 border-gray-100" />
-                  <button
-                    onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                  >
-                    Sign out
-                  </button>
-                </div>
-              )}
-            </div>
+          {user ? (
+            <DropdownMenu>
+              {/* MenuPrimitive.Trigger already renders a <button>, so no render/asChild needed here */}
+              <DropdownMenuTrigger className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-blue-100 text-blue-700 font-medium text-sm">
+                    {user.firstName?.[0]?.toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="hidden md:block">{user.firstName}</span>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem render={<Link href="/account" />}>
+                  My Account
+                </DropdownMenuItem>
+                <DropdownMenuItem render={<Link href="/account/orders" />}>
+                  My Orders
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="destructive" onClick={handleLogout}>
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <Link
               href="/login"
