@@ -40,7 +40,7 @@ function CheckoutFlow() {
   useEffect(() => {
     async function fetchAddresses() {
       try {
-        const { data } = await api.get("/api/user/addresses");
+        const { data } = await api.get("/api/users/addresses");
         setAddresses(data.data || []);
         const defaultAddr = data.data?.find((a) => a.isDefault);
         if (defaultAddr) setSelectedAddress(defaultAddr._id);
@@ -90,14 +90,18 @@ function CheckoutFlow() {
         },
         paymentMethod,
       });
-      console.log(data);
+      console.log("STEP 1 - ORDER RESPONSE:", orderData);
 
       const orderId = orderData.data._id || orderData.data.orderId;
+
+      console.log("STEP 2 - ORDER ID:", orderId);
 
       const { data: paymentData } = await api.post("/api/payments/initiate", {
         orderId,
         gateway: paymentMethod === "razorpay" ? "razorpay" : "cod",
       });
+
+      console.log("STEP 3 - PAYMENT RESPONSE:", paymentData);
 
       if (paymentMethod === "cod") {
         await clearCart();
@@ -108,14 +112,14 @@ function CheckoutFlow() {
         amount: paymentData.data.amount,
         currency: paymentData.data.currency || "INR",
         razorapayOrderId: paymentData.data.razorpayOrderId,
-        KeyId: paymentData.data.razorpayKeyId,
+        keyId: paymentData.data.razorpayKeyId,
         userName: `${user.firstName} ${user.lastName}`,
         userEmail: user.email,
         onSuccess: async (razorpayResponse) => {
           await api.post("/api/payments/verify/razorpay", {
-            razorpay_payment_id: razorpayResponse.razorpay_payment_id,
-            razorpay_order_id: razorpayResponse.razorpay_order_id,
-            razorpay_signature: razorpayResponse.razorpay_signature,
+            razorpayPaymentId: razorpayResponse.razorpay_payment_id,
+            razorpayOrderId: razorpayResponse.razorpay_order_id,
+            razorpaySignature: razorpayResponse.razorpay_signature,
             orderId,
           });
           await clearCart();

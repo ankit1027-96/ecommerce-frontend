@@ -64,8 +64,12 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("refreshToken");
   }
 
+  function updateUser(updatedFields) {
+    setUser((prev) => (prev ? { ...prev, ...updatedFields } : updatedFields));
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
