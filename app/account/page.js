@@ -17,7 +17,7 @@ export default function AccountPage() {
 }
 
 function ProfileSection() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [editing, setEditing] = useState(false);
   const [serverMsg, setServerMsg] = useState(null);
 
@@ -47,11 +47,12 @@ function ProfileSection() {
   async function onSubmit(formData) {
     setServerMsg(null);
     try {
-      await api.put("/api/user/profile", {
+      const { data } = await api.put("/api/users/profile", {
         firstName: formData.firstName,
         lastName: formData.lastName,
         phone: formData.phone,
       });
+      updateUser(data.data); 
       setServerMsg({ type: "success", text: "Profile updated successfully" });
       setEditing(false);
     } catch (err) {
@@ -203,7 +204,7 @@ function AddressSection() {
 
   async function fetchAddresses() {
     try {
-      const { data } = await api.get("/api/user/addresses");
+      const { data } = await api.get("/api/users/addresses");
       setAddresses(data.data || []);
     } catch (err) {
       console.error(err);
@@ -215,7 +216,7 @@ function AddressSection() {
   async function handleDelete(addressId) {
     if (!confirm("Remove this address")) return;
     try {
-      await api.delete(`/api/user/addresses/${addressId}`);
+      await api.delete(`/api/users/addresses/${addressId}`);
       setAddresses((prev) => prev.filter((a) => a._id !== addressId));
     } catch (err) {
       alert("Failed to delete addresses");
@@ -236,9 +237,9 @@ function AddressSection() {
     setServerMsg(null);
     try {
       if (editingAddr) {
-        await api.put(`/api/user/addresses/${editingAddr._id}`, formData);
+        await api.put(`/api/users/addresses/${editingAddr._id}`, formData);
       } else {
-        await api.post("/api/user/addresses", formData);
+        await api.post("/api/users/addresses", formData);
       }
       await fetchAddresses();
       handleCloseForm();
