@@ -1,4 +1,4 @@
-"use-client";
+"use client";
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -10,7 +10,7 @@ export default function OrderSuccessPage() {
   const orderId = searchParams.get("orderId");
   const [order, setOrder] = useState(null);
 
-  use(() => {
+  useEffect(() => {
     if (orderId) {
       api
         .get(`/api/orders/${orderId}`)

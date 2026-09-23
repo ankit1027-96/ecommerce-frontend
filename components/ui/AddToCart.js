@@ -6,7 +6,11 @@ import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-export default function AddToCartButton({ productId, inStock }) {
+export default function AddToCartButton({
+  productId,
+  inStock,
+  showQuantitySelector = true,
+}) {
   const { user } = useAuth();
   const { addToCart } = useCart();
   const router = useRouter();
@@ -15,6 +19,11 @@ export default function AddToCartButton({ productId, inStock }) {
   const [feedback, setFeedback] = useState(null);
 
   async function handleAddToCart() {
+    // Guard against duplicate submissions — a fast double-click (or a
+    // second call firing before `adding` re-renders) could otherwise
+    // fire two `addToCart` calls before the first one resolves.
+    if (adding) return;
+
     if (!user) {
       router.push("/login");
       return;
@@ -49,27 +58,31 @@ export default function AddToCartButton({ productId, inStock }) {
 
   return (
     <div className="flex flex-col gap-3 ">
-      <div className="flex items-center gap-3">
-        <span className="text-sm text-gray-600">Quantity:</span>
-        <div className="flex- items-center border border-gray-300 rounded-lg overflow-hidden">
-          <button
-            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-            className="px-3 py-2 text-gray-600 hover:bg-gray-50 transition text-lg leading-none"
-          >
-            -
-          </button>
-          <span className="px-4 py-2 text-sm font-medium border-x border-gray-300">
-            {quantity}
-          </span>
-          <button
-            onClick={() => setQuantity((q) => Math.min(10, q + 1))}
-            className="px-3 py-2 text-gray-600 hover:bg-gray-50 transition text-lg leading-none"
-          >
-            +
-          </button>
+      {showQuantitySelector && (
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-600">Quantity:</span>
+          <div className="flex- items-center border border-gray-300 rounded-lg overflow-hidden">
+            <button
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              disabled={adding}
+              className="px-3 py-2 text-gray-600 hover:bg-gray-50 transition text-lg leading-none disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              -
+            </button>
+            <span className="px-4 py-2 text-sm font-medium border-x border-gray-300">
+              {quantity}
+            </span>
+            <button
+              onClick={() => setQuantity((q) => Math.min(10, q + 1))}
+              disabled={adding}
+              className="px-3 py-2 text-gray-600 hover:bg-gray-50 transition text-lg leading-none disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              +
+            </button>
+          </div>
         </div>
-      </div>
-      <Button loading={adding} onClick={handleAddToCart}>
+      )}
+      <Button loading={adding} disabled={adding} onClick={handleAddToCart}>
         Add to cart
       </Button>
       {feedback && (

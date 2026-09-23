@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import AddToCartButton from "@/components/ui/AddToCart";
 
 export default function ProductCard({ product }) {
   const primaryImage =
@@ -11,18 +12,17 @@ export default function ProductCard({ product }) {
         ((product.comparePrice - product.price) / product.comparePrice) * 100,
       )
     : 0;
+  const stockLeft = product.inventory?.quantity ?? 0;
+  const inStock = stockLeft > 0;
 
   return (
-    <Link href={`/products/${product._id}`} className="group block">
-      <div
-        className="bg-white rounded-xl border border-gray-200 overflow-hidden 
-              hover:shadow-md hover:border-gray-300 transition-all duration-200"
-      >
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md hover:border-gray-300 transition-all duration-200">
+      <Link href={`/products/${product._id}`} className="group block">
         <div className="relative aspect-square bg-gray-50">
           {primaryImage ? (
             <Image
               src={primaryImage.url}
-              alt={product.name}
+              alt={primaryImage.altText || product.name}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-300"
               sizes="(max-width: 768px) 50vw, (max-width:1200px) 33vw, 25vw"
@@ -45,43 +45,65 @@ export default function ProductCard({ product }) {
               </svg>
             </div>
           )}
+
           {hasDiscount && (
-            <div
-              className="absolute top-2 left-2 bg-green-500 text-white text-xs
-              font-medium px-2 py-0.5 rounded-full"
-            >
+            <div className="absolute top-2 left-2 bg-green-500 text-white text-xs font-medium px-2 py-0.5 rounded-full">
               {discountPercent}% off
             </div>
           )}
-          {product.inventory?.quantity === 0 && (
+          {!hasDiscount && product.isFeatured && (
+            <div className="absolute top-2 left-2 bg-gray-900 text-white text-xs font-medium px-2 py-0.5 rounded-full">
+              Featured
+            </div>
+          )}
+          {inStock && (
+            <div className="absolute top-2 right-2 text-[10px] bg-gray-900/80 text-emerald-400 px-2 py-0.5 rounded font-mono">
+              {stockLeft} left
+            </div>
+          )}
+
+          {!inStock && (
             <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
               <span className="text-sm font-medium text-gray-500">
                 Out of stock
               </span>
             </div>
-          )}{" "}
-          {
-            <div className="p-3">
-              <p className="text-xs text-gray-400 mb-0.5">
-                {product.brand?.name}
-              </p>
-              <h3 className="text-sm font-medium text-gray-900 line-clamp-2 leading-snug">
-                {product.name}
-              </h3>
-              <div className="flex items-baseline gap-2 mt-2">
-                <span className="text-base font-bold text-gray-900">
-                  ₹{product.price?.toLocaleString("en-IN")}
-                </span>
-                {hasDiscount && (
-                  <span className="text-xs text-gray-400 line-through">
-                    ₹{product.comparePrice?.toLocaleString("en-IN")}
-                  </span>
-                )}
-              </div>
-            </div>
-          }
+          )}
         </div>
+
+        {/*
+          Fixed: this block used to be nested INSIDE the aspect-square
+          image container above (unclosed div), which would squeeze or
+          overlap the product details against the fixed-ratio image box.
+          It's now a proper sibling, rendered as normal card content below
+          the image.
+        */}
+        <div className="p-3">
+          <p className="text-xs text-gray-400 mb-0.5">{product.brand?.name}</p>
+          <h3 className="text-sm font-medium text-gray-900 line-clamp-2 leading-snug">
+            {product.name}
+          </h3>
+          <div className="flex items-baseline gap-2 mt-2">
+            <span className="text-base font-bold text-gray-900">
+              ₹{product.price?.toLocaleString("en-IN")}
+            </span>
+            {hasDiscount && (
+              <span className="text-xs text-gray-400 line-through">
+                ₹{product.comparePrice?.toLocaleString("en-IN")}
+              </span>
+            )}
+          </div>
+        </div>
+      </Link>
+
+      {/* Outside the Link so clicking/using the button doesn't navigate */}
+      <div className="px-3 pb-3">
+        <AddToCartButton
+          productId={product._id}
+          inStock={inStock}
+          showQuantitySelector={false}
+        />
       </div>
-    </Link>
+    </div>
   );
 }

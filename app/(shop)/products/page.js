@@ -39,7 +39,14 @@ export default async function ProductsPage({ searchParams }) {
     getCategories(),
   ]);
 
-  const { products = [], total = 0, page = 1, pages = 1 } = productsData;
+  const {
+    products = [],
+    pagination: {
+      totalItems: total = 0,
+      currentPage: page = 1,
+      totalPages: pages = 1,
+    } = {},
+  } = productsData;
   return (
     <div className="flex gap-6">
       <aside className="hidden md:block w-56 shrink-0">
